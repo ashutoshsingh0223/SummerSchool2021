@@ -7,9 +7,13 @@
 // TODO CUDA kernel implementing axpy
 //      y = y + alpha*x
 __global__
-void axpy(int n, double alpha, const double* x, double* y)
+void axpy(int n, double alpha, const double* x, double* y){
     auto i = threadIdx.x;
-    y[i] = y[i] + alpha * x[i];
+    if (i < n){
+        y[i] = y[i] + alpha * x[i];
+    }
+    
+}
 
 int main(int argc, char** argv) {
     size_t pow = read_arg(argc, argv, 1, 16);
