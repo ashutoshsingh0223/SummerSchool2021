@@ -20,7 +20,7 @@ void benchmark_gpu(thrust::host_vector<double> values_host)
 
     auto h2d_time = get_time() - start;
 
-    thrust::sort(thrust::device, values_device.begin(), values_device.end);
+    thrust::sort(thrust::device, values_device.begin(), values_device.end());
 
     auto sort_time = get_time() - h2d_time;
 
