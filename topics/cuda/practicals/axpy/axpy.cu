@@ -1,4 +1,4 @@
-#include <iostream>
+ #include <iostream>
 
 #include <cuda.h>
 
@@ -6,7 +6,10 @@
 
 // TODO CUDA kernel implementing axpy
 //      y = y + alpha*x
-//void axpy(int n, double alpha, const double* x, double* y)
+__global__
+void axpy(int n, double alpha, const double* x, double* y)
+    auto i = threadIdx.x;
+    y[i] = y[i] + alpha * x[i];
 
 int main(int argc, char** argv) {
     size_t pow = read_arg(argc, argv, 1, 16);
@@ -37,7 +40,7 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
 
     start = get_time();
-    // TODO launch kernel (alpha=2.0)
+    axpy<<<1, n>>>(n, alpha, x_device, y_device)
 
     cudaDeviceSynchronize();
     auto time_axpy = get_time() - start;
