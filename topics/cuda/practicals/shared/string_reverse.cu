@@ -9,7 +9,7 @@ __global__
 void reverse_string(char* str, int n){
     auto i = threadIdx.x + blockDim.x * blockIdx.x;
     if (i < n){
-        str[n - i] = str[i];
+        str[i] = str[n - i - 1] ;
     }
 
 }
