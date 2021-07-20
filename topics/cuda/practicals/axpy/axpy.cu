@@ -8,7 +8,7 @@
 //      y = y + alpha*x
 __global__
 void axpy(int n, double alpha, const double* x, double* y){
-    auto i = threadIdx.x;
+    auto i = threadIdx.x + blockDim.x * blockIdx.x;
     if (i < n){
         y[i] = y[i] + alpha * x[i];
     }
@@ -37,14 +37,16 @@ int main(int argc, char** argv) {
     copy_to_device<double>(y_host, y_device, n);
     auto time_H2D = get_time() - start;
 
-    // TODO calculate grid dimensions
+    auto block_size = 512;
+    auto num_blocks = (n + block_size - 1) / block_size;
+    
     // IGNORE for the first kernel writing exercise
 
     // synchronize the host and device so that the timings are accurate
     cudaDeviceSynchronize();
 
     start = get_time();
-    axpy<<<1, n>>>(n, 2.0, x_device, y_device);
+    axpy<<<num_blocks, n>>>(n, 2.0, x_device, y_device);
 
     cudaDeviceSynchronize();
     auto time_axpy = get_time() - start;
