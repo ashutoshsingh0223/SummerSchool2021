@@ -7,10 +7,21 @@
 // TODO : implement a kernel that reverses a string of length n in place
 __global__
 void reverse_string(char* str, int n){
+    // Without shared memory
     auto i = threadIdx.x + blockDim.x * blockIdx.x;
     if (i < n){
         str[i] = str[n - i - 1] ;
     }
+
+     // With shared memory
+    // extern char* buffer [];
+    // auto i = threadIdx.x + blockDim.x * blockIdx.x;
+    // if (i < n){
+    //     buffer[i] = str[i];
+    //     __syncthreads();
+
+    //     str[i] = buffer[n - i - 1];
+    // }
 
 }
 

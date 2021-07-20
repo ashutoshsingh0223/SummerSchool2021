@@ -1,4 +1,5 @@
 #include <iostream>
+#include <numeric>
 
 #include <cuda.h>
 
@@ -18,7 +19,10 @@ template <int THREADS>
 __global__
 void dot_gpu_kernel(const double *x, const double* y, double *result, int n) {
     auto i = threadIdx.x + blockDim.x * blockIdx.x;
-    result += x[i]*y[i];
+    extern __shared__ double buffer[];
+    buffer[i] = x[i]*y[i];
+    __syncthreads();
+    result = accumulate(buffer , buffer+n , 0);
 }
 
 double dot_gpu(const double *x, const double* y, int n) {
