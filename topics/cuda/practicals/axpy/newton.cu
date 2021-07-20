@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
     auto time_kernel = -get_time();
 
-    newton_device<<<grid_dim, block_dim>>(n, xd);
+    newton_device<<<grid_dim, block_dim>>>(n, xd);
 
     cudaDeviceSynchronize();
     time_kernel += get_time();
