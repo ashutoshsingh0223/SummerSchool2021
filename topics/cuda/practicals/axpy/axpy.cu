@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
 
     start = get_time();
-    axpy<<<num_blocks, n>>>(n, 2.0, x_device, y_device);
+    axpy<<<num_blocks, block_size>>>(n, 2.0, x_device, y_device);
 
     cudaDeviceSynchronize();
     auto time_axpy = get_time() - start;
