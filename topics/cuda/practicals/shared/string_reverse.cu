@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     }
     auto num_blocks = (n + block_size - 1) / block_size;
 
-    reverse_string<<<num_blocks, block)size>>>(string, n);
+    reverse_string<<<num_blocks, block_size>>>(string, n);
 
     // print reversed string
     cudaDeviceSynchronize();
