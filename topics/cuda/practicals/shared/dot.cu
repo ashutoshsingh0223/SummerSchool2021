@@ -31,7 +31,7 @@ double dot_gpu(const double *x, const double* y, int n) {
     auto num_blocks = (n + block_size - 1) / block_size;
 
 
-    dot_gpu_kernel<<<num_blocks, block_size>>>(x, y, &result, n);
+    dot_gpu_kernel<<<num_blocks, block_size>>>(x, y, *result, n);
 
     cudaDeviceSynchronize();
     return *result;
