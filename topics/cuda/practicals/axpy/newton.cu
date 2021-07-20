@@ -4,12 +4,12 @@
 
 #include "util.hpp"
 
-__host__
+__host__ __device__
 double f(double x) {
     return exp(cos(x))-2;
 };
 
-__host__
+__host__ __device__
 double fp(double x) {
     return -sin(x) * exp(cos(x));
 };
@@ -30,9 +30,9 @@ void newton_host(int n, double *x) {
 
 // implement newton_device() kernel that performs the work in newton_host
 // in parallel on the GPU
-
+__global__
 void newton_device(int n, double *x) {
-    auto i = threadIdx.x + blockDim.x * blockIdx.x
+    auto i = threadIdx.x + blockDim.x * blockIdx.x;
     if (i < n){
         auto x0 = x[i];
         for(int iter=0; iter<5; ++iter) {
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
     auto time_kernel = -get_time();
 
-    // TODO: launch kernel (use block_dim and grid_dim calculated above)
+    newton_device<<<grid_dim, block_dim>>(n, xd);
 
     cudaDeviceSynchronize();
     time_kernel += get_time();
