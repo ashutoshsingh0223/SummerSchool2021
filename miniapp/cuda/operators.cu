@@ -54,6 +54,28 @@ void setup_params_on_device(int nx, int ny, double alpha, double dxs)
 namespace kernels {
     __global__
     void stencil_interior(double* S, const double *U) {
+        auto j = threadIdx.x + blockDim.x*blockIdx.x;
+
+        auto nx = params.nx;
+        auto ny = params.ny;
+        auto alpha = params.alpha;
+        auto dxs = params.dxs;
+
+        auto find_pos = [&nx] (size_t i, size_t j) {
+            return i + j * nx;
+        };
+
+        if (j>0 && j<ny){
+            for(int i = 1, i < nx - 1, i++){
+                auto pos = find_pos(i, j)
+                S(i,j) = -(4. + alpha) * U(pos) //Central inner point 
+                        + U(pos - 1) + U(pos + 1) // east and west
+                        + U(pos - nx) + U(pos + nx) // north and south
+                        + alpha * x_old(pos)
+                        + dxs * U(pos) * (1.0 - U[pos]);
+
+            }
+        }
         // TODO : implement the interior stencil
         // EXTRA : can you make it use shared memory?
         //  S(i,j) = -(4. + alpha) * U(i,j)               // central point
@@ -86,6 +108,11 @@ namespace kernels {
 
             // TODO : do the stencil on the WEST side
             // WEST : i = 0
+            pos = find_pos(0, j);
+            S[pos] = -(4. + alpha) * U[pos]
+                        + U[pos+1] + U[pos-nx] + U[pos+nx]
+                        + alpha*params.x_old[pos] + params.bndW[j]
+                        + dxs * U[pos] * (1.0 - U[pos]);
         }
     }
 
@@ -108,6 +135,11 @@ namespace kernels {
 
             // TODO : do the stencil on the SOUTH side
             // SOUTH : j = 0
+             pos = i + nx*0;
+             S[pos] = -(4. + alpha) * U[pos]
+                        + U[pos-1] + U[pos+1] + U[pos+nx]
+                        + alpha*params.x_old[pos] + params.bndS[i]
+                        + dxs * U[pos] * (1.0 - U[pos]);
         }
     }
 
@@ -197,6 +229,8 @@ void diffusion(data::Field const& U, data::Field &S)
         return (n+block_dim-1)/block_dim;
     };
 
+    auto int_grid_dim(ny, 64);
+    kernels::stencil_interior<<<int_grid_dim, 64>>>(S.device_data(), U.device_data());
     // TODO: apply stencil to the interior grid points
 
     cudaDeviceSynchronize();    // TODO: remove after debugging
