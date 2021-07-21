@@ -66,13 +66,13 @@ namespace kernels {
         };
 
         if (j>0 && j<ny){
-            for(int i = 1; i < nx - 1; i++){
+            for(int i = 1; i < nx; i++){
                 auto pos = find_pos(i, j);
-                S(i,j) = -(4. + alpha) * U(pos) //Central inner point 
-                        + U(pos - 1) + U(pos + 1) // east and west
-                        + U(pos - nx) + U(pos + nx) // north and south
-                        + alpha * x_old(pos)
-                        + dxs * U(pos) * (1.0 - U[pos]);
+                S(i,j) = -(4. + alpha) * U[pos] //Central inner point 
+                        + U[pos - 1] + U[pos + 1] // east and west
+                        + U[pos - nx] + U[pos + nx] // north and south
+                        + alpha * params.x_old[pos]
+                        + dxs * U[pos] * (1.0 - U[pos]);
 
             }
         }
