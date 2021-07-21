@@ -72,7 +72,7 @@ void scale(double *y, double *x, const double alpha, int n){
 }
 
 __global__
-void lcomb(double *y, const double alpha , double *x, const double beta, double *z){
+void lcomb(double *y, const double alpha , double *x, const double beta, const double *z, int n){
     auto i = threadIdx.x + blockDim.x*blockIdx.x;
      if(i < n) {
         y[i] = alpha*x[i] + beta*z[i];
@@ -136,8 +136,8 @@ double ss_dot(Field const& x, Field const& y)
 
     auto handle = cublas_handle();
 
-    auto status =  cublasDdot(handle, n, x.device_data(), 1,  y, 1, &result);
-    cuda_check_status(status);
+    cublasDdot(handle, n, x.device_data(), 1,  y.device_data(), 1, &result);
+    // cuda_check_status(status);
     return result;
 }
 
@@ -152,8 +152,8 @@ double ss_norm2(Field const& x)
     const int n = x.length();
 
     auto handle = cublas_handle();
-    auto status =  cublasDnrm2(handle, n, x.device_data(), 1, &result);
-    cuda_check_status(status);
+    cublasDnrm2(handle, n, x.device_data(), 1, &result);
+    // cuda_check_status(status);
 
     return result;
 }
@@ -219,7 +219,7 @@ void ss_axpy(Field& y, const double alpha, Field const& x)
 // alpha is a scalar
 void ss_scaled_diff(Field& y, const double alpha, Field const& l, Field const& r)
 {
-    const int n = x.length();
+    const int n = y.length();
     auto grid_dim = calculate_grid_dim(block_dim, n);
     kernels::scaled_diff<<<grid_dim, block_dim>>>(y.device_data(), l.device_data(), r.device_data(), alpha, n);
 }
@@ -231,7 +231,7 @@ void ss_scale(Field& y, const double alpha, Field& x)
 {
     const int n = x.length();
     auto grid_dim = calculate_grid_dim(block_dim, n);
-    kernels::scale<<<grid_dim, block_dim>>>(y.device_data(), x.device_data(), alpha);
+    kernels::scale<<<grid_dim, block_dim>>>(y.device_data(), x.device_data(), alpha, n);
 }
 
 // computes linear combination of two vectors y := alpha*x + beta*z
@@ -241,7 +241,7 @@ void ss_lcomb(Field& y, const double alpha, Field& x, const double beta, Field c
 {
     const int n = x.length();
     auto grid_dim = calculate_grid_dim(block_dim, n);
-    kernels::lcomb<<<grid_dim, block_dim>>>(y.device_data(), alpha , x.device_data(), beta, z.device_data());
+    kernels::lcomb<<<grid_dim, block_dim>>>(y.device_data(), alpha , x.device_data(), beta, z.device_data(), n);
 
 
 }
