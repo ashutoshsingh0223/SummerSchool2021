@@ -66,8 +66,8 @@ namespace kernels {
         };
 
         if (j>0 && j<ny){
-            for(int i = 1, i < nx - 1, i++){
-                auto pos = find_pos(i, j)
+            for(int i = 1; i < nx - 1; i++){
+                auto pos = find_pos(i, j);
                 S(i,j) = -(4. + alpha) * U(pos) //Central inner point 
                         + U(pos - 1) + U(pos + 1) // east and west
                         + U(pos - nx) + U(pos + nx) // north and south
@@ -229,7 +229,7 @@ void diffusion(data::Field const& U, data::Field &S)
         return (n+block_dim-1)/block_dim;
     };
 
-    auto int_grid_dim(ny, 64);
+    auto int_grid_dim = calculate_grid_dim(ny, 64);
     kernels::stencil_interior<<<int_grid_dim, 64>>>(S.device_data(), U.device_data());
     // TODO: apply stencil to the interior grid points
 
