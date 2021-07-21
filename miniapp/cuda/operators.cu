@@ -54,7 +54,8 @@ void setup_params_on_device(int nx, int ny, double alpha, double dxs)
 namespace kernels {
     __global__
     void stencil_interior(double* S, const double *U) {
-        auto j = threadIdx.x + blockDim.x*blockIdx.x;
+        auto i = threadIdx.x + blockDim.x*blockIdx.x;
+        auto j = threadIdx.y + blockDim.y*blockIdx.y;
 
         auto nx = params.nx;
         auto ny = params.ny;
@@ -65,16 +66,14 @@ namespace kernels {
             return i + j * nx;
         };
 
-        if (j>0 && j<ny){
-            for(int i = 1; i < nx; i++){
-                auto pos = find_pos(i, j);
-                S[pos] = -(4. + alpha) * U[pos] //Central inner point 
-                        + U[pos - 1] + U[pos + 1] // east and west
-                        + U[pos - nx] + U[pos + nx] // north and south
-                        + alpha * params.x_old[pos]
-                        + dxs * U[pos] * (1.0 - U[pos]);
+        if (i < (nx - 1) && (j < ny - 1)){
+            auto pos = find_pos(i, j);
+            S[pos] = -(4. + alpha) * U[pos] //Central inner point 
+                    + U[pos - 1] + U[pos + 1] // east and west
+                    + U[pos - nx] + U[pos + nx] // north and south
+                    + alpha * params.x_old[pos]
+                    + dxs * U[pos] * (1.0 - U[pos]);
 
-            }
         }
         // TODO : implement the interior stencil
         // EXTRA : can you make it use shared memory?
@@ -229,8 +228,10 @@ void diffusion(data::Field const& U, data::Field &S)
         return (n+block_dim-1)/block_dim;
     };
 
-    auto int_grid_dim = calculate_grid_dim(ny, 64);
-    kernels::stencil_interior<<<int_grid_dim, 64>>>(S.device_data(), U.device_data());
+
+    dim3 threadsPerBlock(16, 16);
+    dim3 num_blocks(calculate_grid_dim(nx, threadsPerBlock.x), calculate_grid_dim(ny, threadsPerBlock.y));
+    kernels::stencil_interior<<<num_blocks, threadsPerBlock>>>(S.device_data(), U.device_data());
     // TODO: apply stencil to the interior grid points
 
     cudaDeviceSynchronize();    // TODO: remove after debugging
